@@ -1,52 +1,42 @@
-pipeline {
+pipeline { 
     agent any 
+
     environment { 
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials') 
     } 
+
     stages { 
         stage('Build') { 
             steps { 
                 sh 'echo "Building the application..."' 
-                sh 'docker build -t my-python-app .' 
+                sh 'docker build -t atelier4_jenkins .' 
             } 
         } 
+        
         stage('Test') { 
             steps { 
                 sh 'echo "Running tests..."' 
-                // Add your unit test commands here
+                // Ajoutez ici des commandes pour exécuter des tests unitaires 
             } 
         } 
+        
         stage('Push to Docker Hub') { 
             steps { 
                 sh 'echo "Pushing the Docker image to Docker Hub..."' 
-                // Secure login using --password-stdin
-                sh """
-                    echo \${DOCKER_HUB_CREDENTIALS_PSW} | \
-                    docker login -u \${DOCKER_HUB_CREDENTIALS_USR} --password-stdin
-                """
-                // Fixed line breaks in tag/push commands
-                sh "docker tag my-python-app \${DOCKER_HUB_CREDENTIALS_USR}/my-python-app:latest" 
-                sh "docker push \${DOCKER_HUB_CREDENTIALS_USR}/my-python-app:latest" 
+                sh "docker login -u ${DOCKER_HUB_CREDENTIALS_USR} -p ${DOCKER_HUB_CREDENTIALS_PSW}"
+                sh "docker tag atelier4_jenkins ${DOCKER_HUB_CREDENTIALS_USR}/atelier4_jenkins:latest"
+                sh "docker push ${DOCKER_HUB_CREDENTIALS_USR}/atelier4_jenkins:latest" 
             } 
         } 
+        
         stage('Deploy') { 
             steps { 
                 sh 'echo "Deploying the application..."' 
-                // Consolidated SSH commands for better readability
-                sh """
-                    ssh user@remote-server '
-                        docker pull \${DOCKER_HUB_CREDENTIALS_USR}/my-python-app:latest && \
-                        docker stop my-python-app || true && \
-                        docker rm my-python-app || true && \
-                        docker run -d -p 5000:5000 --name my-python-app \${DOCKER_HUB_CREDENTIALS_USR}/my-python-app:latest
-                    '
-                """
+                sh "ssh user@remote-server 'docker pull ${DOCKER_HUB_CREDENTIALS_USR}/atelier4_jenkins:latest'" 
+                sh "ssh user@remote-server 'docker stop atelier4_jenkins || true'" 
+                sh "ssh user@remote-server 'docker rm atelier4_jenkins || true'" 
+                sh "ssh user@remote-server 'docker run -d -p 5000:5000 --name atelier4_jenkins ${DOCKER_HUB_CREDENTIALS_USR}/atelier4_jenkins:latest'" 
             } 
-        }
-    }
-    post {
-        always {
-            sh 'docker logout'  // Always logout after build
-        }
+        } 
     }
 }
