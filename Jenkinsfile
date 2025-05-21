@@ -9,7 +9,7 @@ pipeline {
         stage('Build') { 
             steps { 
                 sh 'echo "Building the application..."' 
-                sh 'docker build -t jenkins .' 
+                sh 'docker build -t my-python-app .' 
             } 
         } 
         
@@ -24,18 +24,18 @@ pipeline {
             steps { 
                 sh 'echo "Pushing the Docker image to Docker Hub..."' 
                 sh "docker login -u ${DOCKER_HUB_CREDENTIALS_USR} -p ${DOCKER_HUB_CREDENTIALS_PSW}"
-                sh "docker tag jenkins ${DOCKER_HUB_CREDENTIALS_USR}/jenkins:latest"
-                sh "docker push ${DOCKER_HUB_CREDENTIALS_USR}/jenkins:latest" 
+                sh "docker tag my-python-app ${DOCKER_HUB_CREDENTIALS_USR}/my-python-app:latest"
+                sh "docker push ${DOCKER_HUB_CREDENTIALS_USR}/my-python-app:latest" 
             } 
         } 
         
         stage('Deploy') { 
             steps { 
                 sh 'echo "Deploying the application..."' 
-                sh "ssh user@remote-server 'docker pull ${DOCKER_HUB_CREDENTIALS_USR}/jenkins:latest'" 
-                sh "ssh user@remote-server 'docker stop jenkins || true'" 
-                sh "ssh user@remote-server 'docker rm jenkins || true'" 
-                sh "ssh user@remote-server 'docker run -d -p 5000:5000 --name jenkins ${DOCKER_HUB_CREDENTIALS_USR}/jenkins:latest'" 
+                sh "ssh user@remote-server 'docker pull ${DOCKER_HUB_CREDENTIALS_USR}/my-python-app:latest'" 
+                sh "ssh user@remote-server 'docker stop my-python-app || true'" 
+                sh "ssh user@remote-server 'docker rm my-python-app || true'" 
+                sh "ssh user@remote-server 'docker run -d -p 5000:5000 --name my-python-app ${DOCKER_HUB_CREDENTIALS_USR}/my-python-app:latest'" 
             } 
         } 
     }
